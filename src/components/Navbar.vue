@@ -35,7 +35,6 @@
       </button>
     </div>
 
-    <!-- Мобильное меню -->
     <div v-if="mobileMenuOpen" class="mobile-menu">
       <ul>
         <li v-for="item in menuItems" :key="item.id">
@@ -52,7 +51,6 @@
 <script setup>
 import { ref } from "vue";
 
-// Props
 const props = defineProps({
   cartCount: {
     type: Number,
@@ -60,46 +58,35 @@ const props = defineProps({
   },
 });
 
-// Emits
 const emit = defineEmits(["search", "toggle-cart"]);
 
-// Состояние
 const localSearchQuery = ref("");
 const mobileMenuOpen = ref(false);
 
-// Данные меню
 const menuItems = ref([
   {
     id: 1,
-    name: "Процессоры",
-    icon: "fas fa-microchip",
+    name: "Категории",
+    icon: "fas fa-th-large",
     link: "#",
-    section: "processors",
+    section: "categories",
   },
   {
     id: 2,
-    name: "Видеокарты",
+    name: "Сборка ПК",
     icon: "fas fa-tv",
     link: "#",
-    section: "graphics",
+    section: "PCAssembly",
   },
   {
     id: 3,
-    name: "Память",
-    icon: "fas fa-memory",
+    name: "Профиль",
+    icon: "fas fa-user",
     link: "#",
-    section: "memory",
-  },
-  {
-    id: 4,
-    name: "Накопители",
-    icon: "fas fa-hdd",
-    link: "#",
-    section: "storage",
+    section: "profile",
   },
 ]);
 
-// Методы
 const handleSearch = () => {
   emit("search", localSearchQuery.value);
 };
@@ -122,7 +109,7 @@ const toggleMobileMenu = () => {
   width: 100%;
   top: 0;
   z-index: 1000;
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid #4a90e2;
 }
 
 .nav-container {
@@ -145,7 +132,7 @@ const toggleMobileMenu = () => {
 
 .nav-logo i {
   font-size: 2rem;
-  color: #3498db;
+  color: #4a90e2;
 }
 
 .nav-search {
@@ -167,8 +154,8 @@ const toggleMobileMenu = () => {
 
 .nav-search input:focus {
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
 .nav-search i {
@@ -196,7 +183,7 @@ const toggleMobileMenu = () => {
 }
 
 .nav-menu a:hover {
-  color: #3498db;
+  color: #4a90e2;
 }
 
 .nav-menu i {
@@ -216,7 +203,7 @@ const toggleMobileMenu = () => {
 }
 
 .nav-cart:hover i {
-  color: #3498db;
+  color: #4a90e2;
 }
 
 .cart-badge {
@@ -272,7 +259,7 @@ const toggleMobileMenu = () => {
 
 .mobile-menu a:hover {
   background: #f8f9fa;
-  color: #3498db;
+  color: #4a90e2;
 }
 
 @media (max-width: 1024px) {

@@ -1,7 +1,9 @@
 <template>
-  <div class="category-section">
+  <div class="category-section" :id="id">
     <div class="category-header">
-      <i :class="category.icon"></i>
+      <div class="category-icon">
+        <img :src="category.icon" :alt="category.name" />
+      </div>
       <h3>{{ category.name }}</h3>
     </div>
 
@@ -19,8 +21,11 @@
 <script setup>
 import ProductCard from "./ProductCard.vue";
 
-// Props
 const props = defineProps({
+  id: {
+    type: String,
+    default: "",
+  },
   category: {
     type: Object,
     required: true,
@@ -31,7 +36,6 @@ const props = defineProps({
   },
 });
 
-// Emits
 defineEmits(["add-to-cart"]);
 </script>
 
@@ -41,8 +45,14 @@ defineEmits(["add-to-cart"]);
   background-color: white;
   border-radius: 20px;
   padding: 30px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  scroll-margin-top: 100px;
+}
+
+.category-section:hover {
+  box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
 }
 
 .category-header {
@@ -50,19 +60,33 @@ defineEmits(["add-to-cart"]);
   align-items: center;
   gap: 15px;
   margin-bottom: 30px;
-  border-bottom: 2px solid #3498db;
+  border-bottom: 2px solid #4a90e2;
   padding-bottom: 15px;
 }
 
-.category-header i {
-  font-size: 2rem;
-  color: #3498db;
+.category-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #4a90e2;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .category-header h3 {
   font-size: 1.8rem;
   margin: 0;
   color: #333;
+  font-weight: 600;
 }
 
 .products-grid {
@@ -90,6 +114,12 @@ defineEmits(["add-to-cart"]);
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
+  }
+
+  .category-icon {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
   }
 }
 </style>

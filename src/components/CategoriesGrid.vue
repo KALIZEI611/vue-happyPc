@@ -3,11 +3,11 @@
     <div class="container">
       <h2 class="section-title">Категории запчастей</h2>
       <div class="categories-grid">
-        <div
+        <router-link
           v-for="category in categories"
           :key="category.id"
+          :to="`/category/${category.id}`"
           class="category-card"
-          @click="$emit('category-click', category.id)"
         >
           <div class="category-icon">
             <img :src="category.icon" :alt="category.name" />
@@ -16,7 +16,7 @@
           <span class="category-count"
             >{{ category.products.length }} товаров</span
           >
-        </div>
+        </router-link>
       </div>
     </div>
   </section>
@@ -29,8 +29,6 @@ defineProps({
     required: true,
   },
 });
-
-defineEmits(["category-click"]);
 </script>
 
 <style scoped>
@@ -77,11 +75,13 @@ defineEmits(["category-click"]);
   border-radius: 16px;
   padding: 30px 20px;
   text-align: center;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   border: 1px solid #e0e0e0;
   animation: fadeIn 0.5s ease-out;
+  display: block;
 }
 
 .category-card:hover {

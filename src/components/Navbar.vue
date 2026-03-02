@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <div class="nav-container">
-      <div class="nav-logo">
+      <div class="nav-logo" @click="goToHome">
         <i class="fas fa-microchip"></i>
         <span>PC Parts Store</span>
       </div>
@@ -18,7 +18,7 @@
 
       <ul class="nav-menu">
         <li v-for="item in menuItems" :key="item.id">
-          <a :href="item.link" @click.prevent="scrollToSection(item.section)">
+          <a href="#" @click.prevent="handleMenuItemClick(item)">
             <i :class="item.icon"></i>
             <span>{{ item.name }}</span>
           </a>
@@ -38,7 +38,7 @@
     <div v-if="mobileMenuOpen" class="mobile-menu">
       <ul>
         <li v-for="item in menuItems" :key="item.id">
-          <a :href="item.link" @click.prevent="scrollToSection(item.section)">
+          <a href="#" @click.prevent="handleMenuItemClick(item)">
             <i :class="item.icon"></i>
             <span>{{ item.name }}</span>
           </a>
@@ -50,6 +50,7 @@
 
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   cartCount: {
@@ -59,6 +60,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["search", "toggle-cart"]);
+const router = useRouter();
 
 const localSearchQuery = ref("");
 const mobileMenuOpen = ref(false);
@@ -68,22 +70,19 @@ const menuItems = ref([
     id: 1,
     name: "Категории",
     icon: "fas fa-th-large",
-    link: "#",
-    section: "categories",
+    action: "home",
   },
   {
     id: 2,
     name: "Сборка ПК",
     icon: "fas fa-tv",
-    link: "#",
-    section: "PCAssembly",
+    action: "pc-assembly",
   },
   {
     id: 3,
     name: "Профиль",
     icon: "fas fa-user",
-    link: "#",
-    section: "profile",
+    action: "profile",
   },
 ]);
 
@@ -91,9 +90,26 @@ const handleSearch = () => {
   emit("search", localSearchQuery.value);
 };
 
-const scrollToSection = (section) => {
-  console.log(`Прокрутка к секции: ${section}`);
+const handleMenuItemClick = (item) => {
   mobileMenuOpen.value = false;
+
+  switch (item.action) {
+    case "home":
+      router.push("/");
+      break;
+    case "pc-assembly":
+      console.log("Переход на страницу сборки ПК");
+      break;
+    case "profile":
+      console.log("Переход на страницу профиля");
+      break;
+    default:
+      break;
+  }
+};
+
+const goToHome = () => {
+  router.push("/");
 };
 
 const toggleMobileMenu = () => {
@@ -128,6 +144,12 @@ const toggleMobileMenu = () => {
   font-size: 1.5rem;
   font-weight: bold;
   color: #2c3e50;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.nav-logo:hover {
+  opacity: 0.8;
 }
 
 .nav-logo i {
@@ -180,6 +202,7 @@ const toggleMobileMenu = () => {
   align-items: center;
   gap: 5px;
   transition: color 0.3s;
+  cursor: pointer;
 }
 
 .nav-menu a:hover {
@@ -255,6 +278,7 @@ const toggleMobileMenu = () => {
   align-items: center;
   gap: 10px;
   padding: 0.5rem;
+  cursor: pointer;
 }
 
 .mobile-menu a:hover {

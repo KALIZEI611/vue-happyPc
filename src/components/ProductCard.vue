@@ -35,7 +35,6 @@
 </template>
 
 <script setup>
-// Props
 const props = defineProps({
   product: {
     type: Object,
@@ -43,7 +42,6 @@ const props = defineProps({
   },
 });
 
-// Emits
 defineEmits(["add-to-cart"]);
 </script>
 
@@ -69,7 +67,7 @@ defineEmits(["add-to-cart"]);
 .product-image-container {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* Создает квадратный контейнер 1:1 */
+  padding-top: 100%;
   overflow: hidden;
   background-color: #f8f9fa;
 }
@@ -88,10 +86,10 @@ defineEmits(["add-to-cart"]);
 .product-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Изображение полностью помещается в контейнер */
+  object-fit: contain;
   object-position: center;
   transition: transform 0.5s;
-  padding: 10px; /* Добавляем отступы, чтобы изображение не прилипало к краям */
+  padding: 10px;
   background-color: #f8f9fa;
 }
 
@@ -215,10 +213,9 @@ defineEmits(["add-to-cart"]);
   font-size: 1rem;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .product-image-container {
-    padding-top: 100%; /* Оставляем квадратными и на мобильных */
+    padding-top: 100%;
   }
 
   .product-info {

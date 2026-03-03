@@ -1,21 +1,22 @@
 <template>
   <div class="category-page">
     <div class="container">
+      <!-- Заголовок категории -->
       <div v-if="category" class="category-header">
         <div class="category-icon-large">
           <img :src="category.icon" :alt="category.name" />
         </div>
         <div class="category-info">
           <h1>{{ category.name }}</h1>
-          <p class="category-count">{{ category.products.length }} товаров</p>
+          <p class="category-count">{{ filteredProducts.length }} товаров</p>
         </div>
       </div>
 
+      <!-- Состояния загрузки/ошибки -->
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Загрузка товаров...</p>
       </div>
-
       <div v-else-if="error" class="error-state">
         <i class="fas fa-exclamation-circle"></i>
         <p>{{ error }}</p>
@@ -24,117 +25,263 @@
         </button>
       </div>
 
-      <div v-else-if="category" class="products-section">
-        <div class="products-header">
-          <div class="results-info">
-            Показано {{ category.products.length }} товаров
+      <!-- Основной контент с фильтрами и товарами -->
+      <div v-else-if="category" class="content-layout">
+        <!-- Кнопка открытия фильтров на мобильных -->
+        <button class="mobile-filter-toggle" @click="showMobileFilters = true">
+          <i class="fas fa-sliders-h"></i> Фильтры
+        </button>
+
+        <!-- Панель фильтров (десктоп) -->
+        <aside class="filter-sidebar">
+          <div class="filter-header">
+            <h3>Фильтры</h3>
+            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
+              <i class="fas fa-times"></i> Сбросить
+            </button>
           </div>
-          <div class="sort-selector">
-            <label for="sort">Сортировка:</label>
-            <select id="sort" v-model="sortBy">
-              <option value="default">По умолчанию</option>
-              <option value="price-asc">Цена: по возрастанию</option>
-              <option value="price-desc">Цена: по убыванию</option>
-              <option value="rating">По рейтингу</option>
-              <option value="name">По названию</option>
+
+          <!-- Фильтр по цене -->
+          <div class="filter-section">
+            <h4>Цена, ₽</h4>
+            <div class="price-inputs">
+              <input
+                type="number"
+                v-model.number="filters.priceMin"
+                placeholder="от"
+                min="0"
+                :max="priceMax"
+              />
+              <span>—</span>
+              <input
+                type="number"
+                v-model.number="filters.priceMax"
+                placeholder="до"
+                :min="priceMin"
+              />
+            </div>
+          </div>
+
+          <!-- Фильтр по бренду -->
+          <div class="filter-section">
+            <h4>Бренд</h4>
+            <div class="brand-list">
+              <label v-for="brand in availableBrands" :key="brand" class="brand-checkbox">
+                <input type="checkbox" :value="brand" v-model="filters.brands" />
+                {{ brand }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Фильтр по рейтингу -->
+          <div class="filter-section">
+            <h4>Рейтинг</h4>
+            <select v-model="filters.minRating" class="rating-select">
+              <option :value="0">Любой</option>
+              <option :value="4">4 и выше</option>
+              <option :value="4.5">4.5 и выше</option>
             </select>
           </div>
-        </div>
+        </aside>
 
-        <div v-if="sortedProducts.length === 0" class="no-products">
-          <i class="fas fa-box-open"></i>
-          <p>В этой категории пока нет товаров</p>
-        </div>
+        <!-- Мобильная панель фильтров (выезжающая) -->
+        <transition name="slide">
+          <div v-if="showMobileFilters" class="mobile-filter-panel">
+            <div class="mobile-filter-header">
+              <h3>Фильтры</h3>
+              <button @click="showMobileFilters = false">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <!-- Содержимое фильтров (аналогично десктопу) -->
+            <div class="filter-section">
+              <h4>Цена, ₽</h4>
+              <div class="price-inputs">
+                <input type="number" v-model.number="filters.priceMin" placeholder="от" />
+                <span>—</span>
+                <input type="number" v-model.number="filters.priceMax" placeholder="до" />
+              </div>
+            </div>
+            <div class="filter-section">
+              <h4>Бренд</h4>
+              <div class="brand-list">
+                <label
+                  v-for="brand in availableBrands"
+                  :key="brand"
+                  class="brand-checkbox"
+                >
+                  <input type="checkbox" :value="brand" v-model="filters.brands" />
+                  {{ brand }}
+                </label>
+              </div>
+            </div>
+            <div class="filter-section">
+              <h4>Рейтинг</h4>
+              <select v-model="filters.minRating">
+                <option :value="0">Любой</option>
+                <option :value="4">4 и выше</option>
+                <option :value="4.5">4.5 и выше</option>
+              </select>
+            </div>
+            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
+              Сбросить фильтры
+            </button>
+            <button @click="showMobileFilters = false" class="apply-filters">
+              Применить
+            </button>
+          </div>
+        </transition>
 
-        <div v-else class="products-grid">
-          <ProductCard
-            v-for="product in sortedProducts"
-            :key="product.id"
-            :product="product"
-            @add-to-cart="$emit('add-to-cart', $event)"
-          />
-        </div>
+        <!-- Секция с товарами -->
+        <section class="products-section">
+          <div class="products-header">
+            <div class="results-info">
+              Показано {{ filteredProducts.length }} из
+              {{ category.products.length }} товаров
+            </div>
+            <div class="sort-selector">
+              <label for="sort">Сортировка:</label>
+              <select id="sort" v-model="sortBy">
+                <option value="default">По умолчанию</option>
+                <option value="price-asc">Цена: по возрастанию</option>
+                <option value="price-desc">Цена: по убыванию</option>
+                <option value="rating">По рейтингу</option>
+                <option value="name">По названию</option>
+              </select>
+            </div>
+          </div>
+
+          <div v-if="filteredProducts.length === 0" class="no-products">
+            <i class="fas fa-box-open"></i>
+            <p>Товары не найдены. Попробуйте изменить фильтры.</p>
+          </div>
+
+          <div v-else class="products-grid">
+            <ProductCard
+              v-for="product in filteredProducts"
+              :key="product.id"
+              :product="product"
+              @add-to-cart="$emit('add-to-cart', $event)"
+            />
+          </div>
+        </section>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import ProductCard from "./ProductCard.vue";
+import { categoryMapping } from "../constants/categoryMapping";
 
 const route = useRoute();
-
 const loading = ref(true);
 const error = ref(null);
 const category = ref(null);
 const sortBy = ref("default");
 
-const categoryMapping = {
-  1: {
-    url: "Processors",
-    name: "Процессоры",
-    icon: "https://cdn-icons-png.flaticon.com/512/4738/4738920.png",
-  },
-  2: {
-    url: "Video_cards",
-    name: "Видеокарты",
-    icon: "https://cdn-icons-png.flaticon.com/512/3849/3849880.png",
-  },
-  3: {
-    url: "RAM",
-    name: "Оперативная память",
-    icon: "https://cdn-icons-png.flaticon.com/512/900/900330.png",
-  },
-  4: {
-    url: "SSD",
-    name: "SSD накопители",
-    icon: "https://cdn-icons-png.flaticon.com/512/2286/2286814.png",
-  },
-  5: {
-    url: "Motherboards",
-    name: "Материнские платы",
-    icon: "https://cdn-icons-png.flaticon.com/512/2124/2124065.png",
-  },
-  6: {
-    url: "Power_supplies",
-    name: "Блоки питания",
-    icon: "https://cdn-icons-png.flaticon.com/512/2507/2507398.png",
-  },
-  7: {
-    url: "Buildings",
-    name: "Корпусы",
-    icon: "https://cdn-icons-png.flaticon.com/512/6329/6329098.png",
-  },
-  8: {
-    url: "Monitors",
-    name: "Мониторы",
-    icon: "https://cdn-icons-png.flaticon.com/512/3474/3474360.png",
-  },
-  9: {
-    url: "Coolers",
-    name: "Кулеры",
-    icon: "https://cdn-icons-png.flaticon.com/512/2729/2729134.png",
-  },
-  10: {
-    url: "Keyboards",
-    name: "Клавиатуры",
-    icon: "https://cdn-icons-png.flaticon.com/512/689/689392.png",
-  },
-  11: {
-    url: "Mice",
-    name: "Мышки",
-    icon: "https://cdn-icons-png.flaticon.com/512/10534/10534765.png",
-  },
-  12: {
-    url: "Headphones",
-    name: "Наушники",
-    icon: "https://cdn-icons-png.flaticon.com/512/2353/2353224.png",
-  },
+// Состояние фильтров
+const filters = ref({
+  priceMin: null,
+  priceMax: null,
+  brands: [],
+  minRating: 0,
+});
+
+// Управление мобильной панелью фильтров
+const showMobileFilters = ref(false);
+
+// Вспомогательные вычисления для границ цены
+const priceMin = computed(() => {
+  if (!category.value) return 0;
+  return Math.min(...category.value.products.map((p) => p.price));
+});
+
+const priceMax = computed(() => {
+  if (!category.value) return 100000;
+  return Math.max(...category.value.products.map((p) => p.price));
+});
+
+// Доступные бренды (извлекаются из названия товара)
+const availableBrands = computed(() => {
+  if (!category.value) return [];
+  const brands = category.value.products
+    .map((p) => p.name.split(" ")[0]) // первое слово как бренд
+    .filter((value, index, self) => self.indexOf(value) === index) // уникальные
+    .sort();
+  return brands;
+});
+
+// Проверка, активны ли фильтры
+const hasActiveFilters = computed(() => {
+  return (
+    filters.value.priceMin !== null ||
+    filters.value.priceMax !== null ||
+    filters.value.brands.length > 0 ||
+    filters.value.minRating > 0
+  );
+});
+
+// Сброс фильтров
+const resetFilters = () => {
+  filters.value = {
+    priceMin: null,
+    priceMax: null,
+    brands: [],
+    minRating: 0,
+  };
 };
 
+// Фильтрация товаров
+const filteredProducts = computed(() => {
+  if (!category.value) return [];
+
+  let products = [...category.value.products];
+
+  // Фильтр по цене
+  if (filters.value.priceMin !== null && !isNaN(filters.value.priceMin)) {
+    products = products.filter((p) => p.price >= filters.value.priceMin);
+  }
+  if (filters.value.priceMax !== null && !isNaN(filters.value.priceMax)) {
+    products = products.filter((p) => p.price <= filters.value.priceMax);
+  }
+
+  // Фильтр по бренду
+  if (filters.value.brands.length > 0) {
+    products = products.filter((p) => {
+      const brand = p.name.split(" ")[0];
+      return filters.value.brands.includes(brand);
+    });
+  }
+
+  // Фильтр по рейтингу
+  if (filters.value.minRating > 0) {
+    products = products.filter((p) => p.rating >= filters.value.minRating);
+  }
+
+  // Сортировка
+  switch (sortBy.value) {
+    case "price-asc":
+      products.sort((a, b) => a.price - b.price);
+      break;
+    case "price-desc":
+      products.sort((a, b) => b.price - a.price);
+      break;
+    case "rating":
+      products.sort((a, b) => b.rating - a.rating);
+      break;
+    case "name":
+      products.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+  }
+
+  return products;
+});
+
+// Загрузка данных категории
 const fetchCategoryData = async () => {
   loading.value = true;
   error.value = null;
@@ -150,7 +297,7 @@ const fetchCategoryData = async () => {
 
   try {
     const response = await axios.get(
-      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`,
+      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`
     );
 
     category.value = {
@@ -167,7 +314,7 @@ const fetchCategoryData = async () => {
     };
   } catch (err) {
     console.error(`Ошибка загрузки категории:`, err);
-    error.value = "Не удалось загрузить товары. Пожалуйста, попробуйте позже.";
+    error.value = "Не удалось загрузить товары. Попробуйте позже.";
   } finally {
     loading.value = false;
   }
@@ -176,58 +323,21 @@ const fetchCategoryData = async () => {
 onMounted(() => {
   fetchCategoryData();
 });
-
-const sortedProducts = computed(() => {
-  if (!category.value) return [];
-
-  const products = [...category.value.products];
-
-  switch (sortBy.value) {
-    case "price-asc":
-      return products.sort((a, b) => a.price - b.price);
-    case "price-desc":
-      return products.sort((a, b) => b.price - a.price);
-    case "rating":
-      return products.sort((a, b) => b.rating - a.rating);
-    case "name":
-      return products.sort((a, b) => a.name.localeCompare(b.name));
-    default:
-      return products;
-  }
-});
 </script>
 
 <style scoped>
 .category-page {
   min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 20px 20px 40px;
 }
 
-.container {
-  padding-top: 20px;
-}
-
-.category-header,
-.loading-state,
-.error-state {
-  margin-top: 20px;
-}
-
-.separator {
-  margin: 0 10px;
-  color: #999;
-}
-
-.current {
-  color: #333;
-  font-weight: 500;
-}
-
+/* Заголовок категории */
 .category-header {
   display: flex;
   align-items: center;
@@ -235,7 +345,7 @@ const sortedProducts = computed(() => {
   background: white;
   border-radius: 20px;
   padding: 40px;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   border: 1px solid #e0e0e0;
 }
@@ -269,6 +379,7 @@ const sortedProducts = computed(() => {
   font-size: 1.1rem;
 }
 
+/* Загрузка/ошибка */
 .loading-state,
 .error-state {
   text-align: center;
@@ -303,11 +414,6 @@ const sortedProducts = computed(() => {
   margin-bottom: 20px;
 }
 
-.error-state p {
-  color: #666;
-  margin-bottom: 20px;
-}
-
 .retry-btn {
   padding: 12px 30px;
   background-color: #4a90e2;
@@ -325,20 +431,212 @@ const sortedProducts = computed(() => {
   box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-.products-header {
+/* Основной макет с фильтрами */
+.content-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* Кнопка для мобильных фильтров */
+.mobile-filter-toggle {
+  display: none;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mobile-filter-toggle:hover {
+  background-color: #357abd;
+}
+
+/* Панель фильтров (десктоп) */
+.filter-sidebar {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #4a90e2;
+}
+
+.filter-header h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0;
+}
+
+.reset-filters {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.reset-filters:hover {
+  text-decoration: underline;
+}
+
+.filter-section {
+  margin-bottom: 25px;
+}
+
+.filter-section h4 {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-inputs input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.price-inputs input:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.brand-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.brand-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.brand-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.rating-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Мобильная панель фильтров */
+.mobile-filter-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 2000;
+  padding: 20px;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-active .mobile-filter-panel,
+.slide-leave-active .mobile-filter-panel {
+  transform: translateX(0);
+}
+
+.mobile-filter-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #4a90e2;
+}
+
+.mobile-filter-header h3 {
+  font-size: 1.3rem;
+  color: #333;
+}
+
+.mobile-filter-header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.apply-filters {
+  width: 100%;
+  padding: 14px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.apply-filters:hover {
+  background-color: #357abd;
+}
+
+/* Секция товаров */
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
   background: white;
-  padding: 20px;
+  padding: 15px 20px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .results-info {
   color: #666;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .sort-selector {
@@ -393,9 +691,25 @@ const sortedProducts = computed(() => {
   gap: 25px;
 }
 
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .content-layout {
+    grid-template-columns: 240px 1fr;
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
-  .container {
-    padding-top: 20px;
+  .content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-sidebar {
+    display: none;
+  }
+
+  .mobile-filter-toggle {
+    display: flex;
   }
 
   .category-header {
@@ -429,10 +743,6 @@ const sortedProducts = computed(() => {
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding-top: 15px;
-  }
-
   .category-icon-large {
     width: 100px;
     height: 100px;

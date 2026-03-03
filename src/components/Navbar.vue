@@ -3,7 +3,7 @@
     <div class="nav-container">
       <div class="nav-logo" @click="goToHome">
         <i class="fas fa-microchip"></i>
-        <span>PC Parts Store</span>
+        <span>HappyPC</span>
       </div>
 
       <div class="nav-search">
@@ -51,40 +51,16 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { menuItems } from "../constants/menuItems"; // импорт
 
 const props = defineProps({
-  cartCount: {
-    type: Number,
-    default: 0,
-  },
+  cartCount: { type: Number, default: 0 },
 });
-
 const emit = defineEmits(["search", "toggle-cart"]);
 const router = useRouter();
 
 const localSearchQuery = ref("");
 const mobileMenuOpen = ref(false);
-
-const menuItems = ref([
-  {
-    id: 1,
-    name: "Категории",
-    icon: "fas fa-th-large",
-    action: "home",
-  },
-  {
-    id: 2,
-    name: "Сборка ПК",
-    icon: "fas fa-tv",
-    action: "pc-assembly",
-  },
-  {
-    id: 3,
-    name: "Профиль",
-    icon: "fas fa-user",
-    action: "profile",
-  },
-]);
 
 const handleSearch = () => {
   emit("search", localSearchQuery.value);
@@ -92,7 +68,6 @@ const handleSearch = () => {
 
 const handleMenuItemClick = (item) => {
   mobileMenuOpen.value = false;
-
   switch (item.action) {
     case "home":
       router.push("/");
@@ -103,18 +78,11 @@ const handleMenuItemClick = (item) => {
     case "profile":
       console.log("Переход на страницу профиля");
       break;
-    default:
-      break;
   }
 };
 
-const goToHome = () => {
-  router.push("/");
-};
-
-const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value;
-};
+const goToHome = () => router.push("/");
+const toggleMobileMenu = () => (mobileMenuOpen.value = !mobileMenuOpen.value);
 </script>
 
 <style scoped>

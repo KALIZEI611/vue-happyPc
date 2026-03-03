@@ -51,9 +51,7 @@ defineEmits(["add-to-cart"]);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;

@@ -1,7 +1,6 @@
 <template>
   <div class="category-page">
     <div class="container">
-      <!-- Заголовок категории -->
       <div v-if="category" class="category-header">
         <div class="category-icon-large">
           <img :src="category.icon" :alt="category.name" />
@@ -12,7 +11,6 @@
         </div>
       </div>
 
-      <!-- Состояния загрузки/ошибки -->
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Загрузка товаров...</p>
@@ -25,23 +23,23 @@
         </button>
       </div>
 
-      <!-- Основной контент с фильтрами и товарами -->
       <div v-else-if="category" class="content-layout">
-        <!-- Кнопка открытия фильтров на мобильных -->
         <button class="mobile-filter-toggle" @click="showMobileFilters = true">
           <i class="fas fa-sliders-h"></i> Фильтры
         </button>
 
-        <!-- Панель фильтров (десктоп) -->
         <aside class="filter-sidebar">
           <div class="filter-header">
             <h3>Фильтры</h3>
-            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
+            <button
+              v-if="hasActiveFilters"
+              @click="resetFilters"
+              class="reset-filters"
+            >
               <i class="fas fa-times"></i> Сбросить
             </button>
           </div>
 
-          <!-- Фильтр по цене -->
           <div class="filter-section">
             <h4>Цена, ₽</h4>
             <div class="price-inputs">
@@ -62,18 +60,24 @@
             </div>
           </div>
 
-          <!-- Фильтр по бренду -->
           <div class="filter-section">
             <h4>Бренд</h4>
             <div class="brand-list">
-              <label v-for="brand in availableBrands" :key="brand" class="brand-checkbox">
-                <input type="checkbox" :value="brand" v-model="filters.brands" />
+              <label
+                v-for="brand in availableBrands"
+                :key="brand"
+                class="brand-checkbox"
+              >
+                <input
+                  type="checkbox"
+                  :value="brand"
+                  v-model="filters.brands"
+                />
                 {{ brand }}
               </label>
             </div>
           </div>
 
-          <!-- Фильтр по рейтингу -->
           <div class="filter-section">
             <h4>Рейтинг</h4>
             <select v-model="filters.minRating" class="rating-select">
@@ -84,7 +88,6 @@
           </div>
         </aside>
 
-        <!-- Мобильная панель фильтров (выезжающая) -->
         <transition name="slide">
           <div v-if="showMobileFilters" class="mobile-filter-panel">
             <div class="mobile-filter-header">
@@ -93,13 +96,20 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            <!-- Содержимое фильтров (аналогично десктопу) -->
             <div class="filter-section">
               <h4>Цена, ₽</h4>
               <div class="price-inputs">
-                <input type="number" v-model.number="filters.priceMin" placeholder="от" />
+                <input
+                  type="number"
+                  v-model.number="filters.priceMin"
+                  placeholder="от"
+                />
                 <span>—</span>
-                <input type="number" v-model.number="filters.priceMax" placeholder="до" />
+                <input
+                  type="number"
+                  v-model.number="filters.priceMax"
+                  placeholder="до"
+                />
               </div>
             </div>
             <div class="filter-section">
@@ -110,7 +120,11 @@
                   :key="brand"
                   class="brand-checkbox"
                 >
-                  <input type="checkbox" :value="brand" v-model="filters.brands" />
+                  <input
+                    type="checkbox"
+                    :value="brand"
+                    v-model="filters.brands"
+                  />
                   {{ brand }}
                 </label>
               </div>
@@ -123,7 +137,11 @@
                 <option :value="4.5">4.5 и выше</option>
               </select>
             </div>
-            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
+            <button
+              v-if="hasActiveFilters"
+              @click="resetFilters"
+              class="reset-filters"
+            >
               Сбросить фильтры
             </button>
             <button @click="showMobileFilters = false" class="apply-filters">
@@ -132,7 +150,6 @@
           </div>
         </transition>
 
-        <!-- Секция с товарами -->
         <section class="products-section">
           <div class="products-header">
             <div class="results-info">
@@ -183,7 +200,6 @@ const error = ref(null);
 const category = ref(null);
 const sortBy = ref("default");
 
-// Состояние фильтров
 const filters = ref({
   priceMin: null,
   priceMax: null,
@@ -191,10 +207,8 @@ const filters = ref({
   minRating: 0,
 });
 
-// Управление мобильной панелью фильтров
 const showMobileFilters = ref(false);
 
-// Вспомогательные вычисления для границ цены
 const priceMin = computed(() => {
   if (!category.value) return 0;
   return Math.min(...category.value.products.map((p) => p.price));
@@ -205,17 +219,15 @@ const priceMax = computed(() => {
   return Math.max(...category.value.products.map((p) => p.price));
 });
 
-// Доступные бренды (извлекаются из названия товара)
 const availableBrands = computed(() => {
   if (!category.value) return [];
   const brands = category.value.products
-    .map((p) => p.name.split(" ")[0]) // первое слово как бренд
-    .filter((value, index, self) => self.indexOf(value) === index) // уникальные
+    .map((p) => p.name.split(" ")[0])
+    .filter((value, index, self) => self.indexOf(value) === index)
     .sort();
   return brands;
 });
 
-// Проверка, активны ли фильтры
 const hasActiveFilters = computed(() => {
   return (
     filters.value.priceMin !== null ||
@@ -225,7 +237,6 @@ const hasActiveFilters = computed(() => {
   );
 });
 
-// Сброс фильтров
 const resetFilters = () => {
   filters.value = {
     priceMin: null,
@@ -235,13 +246,11 @@ const resetFilters = () => {
   };
 };
 
-// Фильтрация товаров
 const filteredProducts = computed(() => {
   if (!category.value) return [];
 
   let products = [...category.value.products];
 
-  // Фильтр по цене
   if (filters.value.priceMin !== null && !isNaN(filters.value.priceMin)) {
     products = products.filter((p) => p.price >= filters.value.priceMin);
   }
@@ -249,7 +258,6 @@ const filteredProducts = computed(() => {
     products = products.filter((p) => p.price <= filters.value.priceMax);
   }
 
-  // Фильтр по бренду
   if (filters.value.brands.length > 0) {
     products = products.filter((p) => {
       const brand = p.name.split(" ")[0];
@@ -257,12 +265,10 @@ const filteredProducts = computed(() => {
     });
   }
 
-  // Фильтр по рейтингу
   if (filters.value.minRating > 0) {
     products = products.filter((p) => p.rating >= filters.value.minRating);
   }
 
-  // Сортировка
   switch (sortBy.value) {
     case "price-asc":
       products.sort((a, b) => a.price - b.price);
@@ -281,7 +287,6 @@ const filteredProducts = computed(() => {
   return products;
 });
 
-// Загрузка данных категории
 const fetchCategoryData = async () => {
   loading.value = true;
   error.value = null;
@@ -297,7 +302,7 @@ const fetchCategoryData = async () => {
 
   try {
     const response = await axios.get(
-      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`
+      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`,
     );
 
     category.value = {
@@ -337,7 +342,6 @@ onMounted(() => {
   padding: 20px 20px 40px;
 }
 
-/* Заголовок категории */
 .category-header {
   display: flex;
   align-items: center;
@@ -379,7 +383,6 @@ onMounted(() => {
   font-size: 1.1rem;
 }
 
-/* Загрузка/ошибка */
 .loading-state,
 .error-state {
   text-align: center;
@@ -431,7 +434,6 @@ onMounted(() => {
   box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
 }
 
-/* Основной макет с фильтрами */
 .content-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -439,7 +441,6 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-/* Кнопка для мобильных фильтров */
 .mobile-filter-toggle {
   display: none;
   width: 100%;
@@ -460,7 +461,6 @@ onMounted(() => {
   background-color: #357abd;
 }
 
-/* Панель фильтров (десктоп) */
 .filter-sidebar {
   background: white;
   border-radius: 16px;
@@ -563,7 +563,6 @@ onMounted(() => {
   color: #333;
 }
 
-/* Мобильная панель фильтров */
 .mobile-filter-panel {
   position: fixed;
   top: 0;
@@ -622,7 +621,6 @@ onMounted(() => {
   background-color: #357abd;
 }
 
-/* Секция товаров */
 .products-header {
   display: flex;
   justify-content: space-between;
@@ -691,7 +689,6 @@ onMounted(() => {
   gap: 25px;
 }
 
-/* Адаптивность */
 @media (max-width: 1024px) {
   .content-layout {
     grid-template-columns: 240px 1fr;

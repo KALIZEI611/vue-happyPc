@@ -51,7 +51,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { menuItems } from "../constants/menuItems"; // импорт
+import { menuItems } from "../constants/menuItems";
 
 const props = defineProps({
   cartCount: { type: Number, default: 0 },

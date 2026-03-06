@@ -1,57 +1,48 @@
 <template>
   <div class="app">
-    <Navbar
-      :cart-count="cart.length"
-      @search="handleSearch"
-      @toggle-cart="toggleCart"
-    />
-
+    <Navbar :cart-count="cartCount" @search="handleSearch" />
     <main class="main-content">
       <router-view
         :cart="cart"
-        :show-cart="showCart"
         @add-to-cart="addToCart"
-        @toggle-cart="toggleCart"
+        @update-cart="updateCart"
+        @remove-from-cart="removeFromCart"
         @search="handleSearch"
       />
     </main>
-
-    <CartModal
-      :show="showCart"
-      :cart="cart"
-      :cart-total="cartTotal"
-      @close="showCart = false"
-      @remove-from-cart="removeFromCart"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
 import Navbar from "./components/Navbar.vue";
-import CartModal from "./components/CartModal.vue";
 
-const router = useRouter();
-const showCart = ref(false);
 const cart = ref([]);
-const searchQuery = ref("");
 
-const cartTotal = computed(() => {
-  return cart.value.reduce((total, item) => total + item.price, 0);
-});
-
-const toggleCart = () => {
-  showCart.value = !showCart.value;
-};
+const cartCount = computed(() =>
+  cart.value.reduce((acc, item) => acc + item.quantity, 0)
+);
 
 const addToCart = (product) => {
-  cart.value.push(product);
-  showCart.value = true;
+  const existing = cart.value.find((item) => item.product.id === product.id);
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.value.push({ product, quantity: 1 });
+  }
 };
 
-const removeFromCart = (index) => {
-  cart.value.splice(index, 1);
+const updateCart = (productId, newQuantity) => {
+  if (newQuantity <= 0) {
+    cart.value = cart.value.filter((item) => item.product.id !== productId);
+  } else {
+    const item = cart.value.find((item) => item.product.id === productId);
+    if (item) item.quantity = newQuantity;
+  }
+};
+
+const removeFromCart = (productId) => {
+  cart.value = cart.value.filter((item) => item.product.id !== productId);
 };
 
 const handleSearch = (query) => {
@@ -64,7 +55,6 @@ const handleSearch = (query) => {
   min-height: 100vh;
   background-color: #f5f5f5;
 }
-
 .main-content {
   padding-top: 80px;
   padding-bottom: 60px;

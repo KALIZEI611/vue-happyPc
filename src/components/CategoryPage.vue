@@ -31,11 +31,7 @@
         <aside class="filter-sidebar">
           <div class="filter-header">
             <h3>Фильтры</h3>
-            <button
-              v-if="hasActiveFilters"
-              @click="resetFilters"
-              class="reset-filters"
-            >
+            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
               <i class="fas fa-times"></i> Сбросить
             </button>
           </div>
@@ -63,16 +59,8 @@
           <div class="filter-section">
             <h4>Бренд</h4>
             <div class="brand-list">
-              <label
-                v-for="brand in availableBrands"
-                :key="brand"
-                class="brand-checkbox"
-              >
-                <input
-                  type="checkbox"
-                  :value="brand"
-                  v-model="filters.brands"
-                />
+              <label v-for="brand in availableBrands" :key="brand" class="brand-checkbox">
+                <input type="checkbox" :value="brand" v-model="filters.brands" />
                 {{ brand }}
               </label>
             </div>
@@ -99,17 +87,9 @@
             <div class="filter-section">
               <h4>Цена, ₽</h4>
               <div class="price-inputs">
-                <input
-                  type="number"
-                  v-model.number="filters.priceMin"
-                  placeholder="от"
-                />
+                <input type="number" v-model.number="filters.priceMin" placeholder="от" />
                 <span>—</span>
-                <input
-                  type="number"
-                  v-model.number="filters.priceMax"
-                  placeholder="до"
-                />
+                <input type="number" v-model.number="filters.priceMax" placeholder="до" />
               </div>
             </div>
             <div class="filter-section">
@@ -120,11 +100,7 @@
                   :key="brand"
                   class="brand-checkbox"
                 >
-                  <input
-                    type="checkbox"
-                    :value="brand"
-                    v-model="filters.brands"
-                  />
+                  <input type="checkbox" :value="brand" v-model="filters.brands" />
                   {{ brand }}
                 </label>
               </div>
@@ -137,11 +113,7 @@
                 <option :value="4.5">4.5 и выше</option>
               </select>
             </div>
-            <button
-              v-if="hasActiveFilters"
-              @click="resetFilters"
-              class="reset-filters"
-            >
+            <button v-if="hasActiveFilters" @click="resetFilters" class="reset-filters">
               Сбросить фильтры
             </button>
             <button @click="showMobileFilters = false" class="apply-filters">
@@ -178,6 +150,7 @@
               v-for="product in filteredProducts"
               :key="product.id"
               :product="product"
+              :is-in-cart="isInCart(product.id)"
               @add-to-cart="$emit('add-to-cart', $event)"
             />
           </div>
@@ -188,13 +161,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import ProductCard from "./ProductCard.vue";
 import { categoryMapping } from "../constants/categoryMapping";
 
 const route = useRoute();
+const props = defineProps({
+  cart: { type: Array, required: true },
+});
+
 const loading = ref(true);
 const error = ref(null);
 const category = ref(null);
@@ -287,6 +264,10 @@ const filteredProducts = computed(() => {
   return products;
 });
 
+const isInCart = (productId) => {
+  return props.cart.some((item) => item.product.id === productId);
+};
+
 const fetchCategoryData = async () => {
   loading.value = true;
   error.value = null;
@@ -302,7 +283,7 @@ const fetchCategoryData = async () => {
 
   try {
     const response = await axios.get(
-      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`,
+      `https://b264ce7a51299334.mokky.dev/${categoryInfo.url}`
     );
 
     category.value = {

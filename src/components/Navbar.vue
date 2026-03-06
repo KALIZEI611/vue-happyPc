@@ -25,10 +25,11 @@
         </li>
       </ul>
 
-      <div class="nav-cart" @click="$emit('toggle-cart')">
+      <!-- Ссылка на страницу корзины вместо кнопки с модалкой -->
+      <router-link to="/cart" class="nav-cart">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-badge" v-if="cartCount > 0">{{ cartCount }}</span>
-      </div>
+      </router-link>
 
       <button class="mobile-menu-btn" @click="toggleMobileMenu">
         <i class="fas fa-bars"></i>
@@ -56,7 +57,7 @@ import { menuItems } from "../constants/menuItems";
 const props = defineProps({
   cartCount: { type: Number, default: 0 },
 });
-const emit = defineEmits(["search", "toggle-cart"]);
+const emit = defineEmits(["search"]);
 const router = useRouter();
 
 const localSearchQuery = ref("");

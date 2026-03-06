@@ -4,47 +4,52 @@
       <div class="product-image">
         <img :src="product.image" :alt="product.name" loading="lazy" />
         <div class="product-overlay">
-          <button @click="$emit('add-to-cart', product)" class="quick-add">
-            <i class="fas fa-cart-plus"></i> В корзину
+          <button @click="handleClick" class="quick-add" :class="{ 'in-cart': isInCart }">
+            <i :class="isInCart ? 'fas fa-check' : 'fas fa-cart-plus'"></i>
+            {{ isInCart ? "В корзине" : "В корзину" }}
           </button>
         </div>
       </div>
     </div>
-
     <div class="product-info">
       <h3 class="product-title">{{ product.name }}</h3>
-
       <div class="product-rating">
         <i
           v-for="star in 5"
           :key="star"
           class="fas fa-star"
           :class="{ filled: star <= Math.floor(product.rating) }"
-        >
-        </i>
+        ></i>
         <span class="rating-value">{{ product.rating }}</span>
       </div>
-
       <div class="product-price">{{ product.price.toLocaleString() }} ₽</div>
-
-      <button @click="$emit('add-to-cart', product)" class="add-to-cart">
-        <i class="fas fa-cart-plus"></i> Добавить
+      <button @click="handleClick" class="add-to-cart" :class="{ 'in-cart': isInCart }">
+        <i :class="isInCart ? 'fas fa-check' : 'fas fa-cart-plus'"></i>
+        {{ isInCart ? "В корзине" : "Добавить" }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
+
 const props = defineProps({
-  product: {
-    type: Object,
-    required: true,
-  },
+  product: { type: Object, required: true },
+  isInCart: { type: Boolean, default: false },
 });
 
-defineEmits(["add-to-cart"]);
-</script>
+const emit = defineEmits(["add-to-cart"]);
+const router = useRouter();
 
+const handleClick = () => {
+  if (props.isInCart) {
+    router.push("/cart");
+  } else {
+    emit("add-to-cart", props.product);
+  }
+};
+</script>
 <style scoped>
 .product-card {
   background: white;
@@ -124,10 +129,18 @@ defineEmits(["add-to-cart"]);
   font-size: 1rem;
   cursor: pointer;
   transform: translateY(20px);
-  transition: transform 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
   font-weight: 500;
 }
 
+.quick-add.in-cart,
+.add-to-cart.in-cart {
+  background-color: #27ae60;
+}
+.quick-add.in-cart:hover,
+.add-to-cart.in-cart:hover {
+  background-color: #2ecc71;
+}
 .product-card:hover .quick-add {
   transform: translateY(0);
 }
@@ -201,6 +214,14 @@ defineEmits(["add-to-cart"]);
   gap: 8px;
   font-weight: 500;
   margin-top: 4px;
+}
+
+.add-to-cart.in-cart {
+  background-color: #27ae60;
+}
+
+.add-to-cart.in-cart:hover {
+  background-color: #2ecc71;
 }
 
 .add-to-cart:hover {
